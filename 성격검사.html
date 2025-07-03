@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>성격 5요인 검사 (60문항)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 20px; background-color: #f9f9f9; color: #333; }
+        h1, h2 { text-align: center; color: #2c3e50; }
+        .instructions { background-color: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; text-align: center; }
+        .question-item { margin-bottom: 20px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #fff; transition: box-shadow 0.2s, border-color 0.3s; }
+        .question-item:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        .question-item.unanswered { border-color: #e74c3c; box-shadow: 0 0 10px rgba(231, 76, 60, 0.3); }
+        .question-item p { font-weight: bold; margin: 0 0 12px 0; font-size: 1.1em; color: #34495e; }
+        .options { display: flex; justify-content: space-around; align-items: center; }
+        .options label { cursor: pointer; padding: 5px 10px; border-radius: 5px; transition: background-color 0.2s; }
+        .options input { display: none; }
+        .options input:checked + span { font-weight: bold; color: #007bff; }
+        #submit-btn { display: block; width: 100%; padding: 15px; font-size: 18px; font-weight: bold; background-color: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 30px; transition: background-color 0.2s; }
+        #submit-btn:hover { background-color: #0056b3; }
+        .results-container { margin-top: 40px; padding: 20px; background-color: #fff; border-radius: 8px; border: 1px solid #ddd; display: none; }
+        #error-msg { text-align: center; color: #c0392b; font-weight: bold; margin-top: 15px; display: none; background-color: #fbeae5; padding: 10px; border-radius: 5px; border: 1px solid #e74c3c; }
+
+        .chart-container { max-width: 600px; margin: 0 auto; }
+
+        #details-table-container { margin-top: 30px; }
+        .details-table { width: 100%; border-collapse: collapse; }
+        .details-table th, .details-table td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        .details-table th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+
+    <h1>성격 5요인 검사</h1>
+    <div class="instructions">
+        각 문항을 읽고 자신을 가장 잘 나타낸다고 생각하는 정도를 선택해주세요.<br>
+        (1: 전혀 그렇지 않다, 2: 그렇지 않다, 3: 보통이다, 4: 그렇다, 5: 매우 그렇다)
+    </div>
+
+    <form id="personality-form">
+        <div id="questionnaire">
+            <div class="question-item" data-factor="E1"><p>1. 사교적인 모임에 나가는 것을 좋아한다.</p><div class="options"><label><input type="radio" name="q1" value="1"><span>1</span></label><label><input type="radio" name="q1" value="2"><span>2</span></label><label><input type="radio" name="q1" value="3"><span>3</span></label><label><input type="radio" name="q1" value="4"><span>4</span></label><label><input type="radio" name="q1" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="N1"><p>2. 나는 내가 죽어버렸으면 하는 생각이 들곤 한다.</p><div class="options"><label><input type="radio" name="q2" value="1"><span>1</span></label><label><input type="radio" name="q2" value="2"><span>2</span></label><label><input type="radio" name="q2" value="3"><span>3</span></label><label><input type="radio" name="q2" value="4"><span>4</span></label><label><input type="radio" name="q2" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="E2"><p>3. 나는 모임에서 리더 역할을 하는 편이다.</p><div class="options"><label><input type="radio" name="q3" value="1"><span>1</span></label><label><input type="radio" name="q3" value="2"><span>2</span></label><label><input type="radio" name="q3" value="3"><span>3</span></label><label><input type="radio" name="q3" value="4"><span>4</span></label><label><input type="radio" name="q3" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="O2"><p>4. 전시회 등에 가서 미술작품을 보는 것이 좋다.</p><div class="options"><label><input type="radio" name="q4" value="1"><span>1</span></label><label><input type="radio" name="q4" value="2"><span>2</span></label><label><input type="radio" name="q4" value="3"><span>3</span></label><label><input type="radio" name="q4" value="4"><span>4</span></label><label><input type="radio" name="q4" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="N2"><p>5. 작은 일에 대해서도 계속 걱정한다.</p><div class="options"><label><input type="radio" name="q5" value="1"><span>1</span></label><label><input type="radio" name="q5" value="2"><span>2</span></label><label><input type="radio" name="q5" value="3"><span>3</span></label><label><input type="radio" name="q5" value="4"><span>4</span></label><label><input type="radio" name="q5" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="O3"><p>6. 나는 상상력이 풍부하다는 이야기를 많이 듣는다.</p><div class="options"><label><input type="radio" name="q6" value="1"><span>1</span></label><label><input type="radio" name="q6" value="2"><span>2</span></label><label><input type="radio" name="q6" value="3"><span>3</span></label><label><input type="radio" name="q6" value="4"><span>4</span></label><label><input type="radio" name="q6" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="A3"><p>7. 사람은 누구나 존중받아야 한다.</p><div class="options"><label><input type="radio" name="q7" value="1"><span>1</span></label><label><input type="radio" name="q7" value="2"><span>2</span></label><label><input type="radio" name="q7" value="3"><span>3</span></label><label><input type="radio" name="q7" value="4"><span>4</span></label><label><input type="radio" name="q7" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="N3"><p>8. 하고 싶은 일이 생기면 바로 해야 한다.</p><div class="options"><label><input type="radio" name="q8" value="1"><span>1</span></label><label><input type="radio" name="q8" value="2"><span>2</span></label><label><input type="radio" name="q8" value="3"><span>3</span></label><label><input type="radio" name="q8" value="4"><span>4</span></label><label><input type="radio" name="q8" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="E4"><p>9. 나의 삶은 즐거움으로 가득하다.</p><div class="options"><label><input type="radio" name="q9" value="1"><span>1</span></label><label><input type="radio" name="q9" value="2"><span>2</span></label><label><input type="radio" name="q9" value="3"><span>3</span></label><label><input type="radio" name="q9" value="4"><span>4</span></label><label><input type="radio" name="q9" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="O4"><p>10. 나는 공부하는 것이 즐겁다.</p><div class="options"><label><input type="radio" name="q10" value="1"><span>1</span></label><label><input type="radio" name="q10" value="2"><span>2</span></label><label><input type="radio" name="q10" value="3"><span>3</span></label><label><input type="radio" name="q10" value="4"><span>4</span></label><label><input type="radio" name="q10" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="N4"><p>11. 나는 화를 자주 내는 편이다.</p><div class="options"><label><input type="radio" name="q11" value="1"><span>1</span></label><label><input type="radio" name="q11" value="2"><span>2</span></label><label><input type="radio" name="q11" value="3"><span>3</span></label><label><input type="radio" name="q11" value="4"><span>4</span></label><label><input type="radio" name="q11" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="E1"><p>12. 사람이 많은 곳에서 함께 어울리는 것이 좋다.</p><div class="options"><label><input type="radio" name="q12" value="1"><span>1</span></label><label><input type="radio" name="q12" value="2"><span>2</span></label><label><input type="radio" name="q12" value="3"><span>3</span></label><label><input type="radio" name="q12" value="4"><span>4</span></label><label><input type="radio" name="q12" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="O1"><p>13. 나는 가능한 많은 것들을 해보고 싶다.</p><div class="options"><label><input type="radio" name="q13" value="1"><span>1</span></label><label><input type="radio" name="q13" value="2"><span>2</span></label><label><input type="radio" name="q13" value="3"><span>3</span></label><label><input type="radio" name="q13" value="4"><span>4</span></label><label><input type="radio" name="q13" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="C1"><p>14. 목표가 있어야 일에 대한 의욕이 생긴다.</p><div class="options"><label><input type="radio" name="q14" value="1"><span>1</span></label><label><input type="radio" name="q14" value="2"><span>2</span></label><label><input type="radio" name="q14" value="3"><span>3</span></label><label><input type="radio" name="q14" value="4"><span>4</span></label><label><input type="radio" name="q14" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="N1"><p>15. 세상에 혼자인 것처럼 느껴진다.</p><div class="options"><label><input type="radio" name="q15" value="1"><span>1</span></label><label><input type="radio" name="q15" value="2"><span>2</span></label><label><input type="radio" name="q15" value="3"><span>3</span></label><label><input type="radio" name="q15" value="4"><span>4</span></label><label><input type="radio" name="q15" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="C2"><p>16. 나는 항상 예상치 못한 상황에 대비하는 편이다.</p><div class="options"><label><input type="radio" name="q16" value="1"><span>1</span></label><label><input type="radio" name="q16" value="2"><span>2</span></label><label><input type="radio" name="q16" value="3"><span>3</span></label><label><input type="radio" name="q16" value="4"><span>4</span></label><label><input type="radio" name="q16" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="A2"><p>17. 누가 나에게 잘못하더라도 쉽게 용서하는 편이다.</p><div class="options"><label><input type="radio" name="q17" value="1"><span>1</span></label><label><input type="radio" name="q17" value="2"><span>2</span></label><label><input type="radio" name="q17" value="3"><span>3</span></label><label><input type="radio" name="q17" value="4"><span>4</span></label><label><input type="radio" name="q17" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="N2"><p>18. 아주 긴장이 된다.</p><div class="options"><label><input type="radio" name="q18" value="1"><span>1</span></label><label><input type="radio" name="q18" value="2"><span>2</span></label><label><input type="radio" name="q18" value="3"><span>3</span></label><label><input type="radio" name="q18" value="4"><span>4</span></label><label><input type="radio" name="q18" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="N3"><p>19. 즉흥적이라는 말을 많이 듣는다.</p><div class="options"><label><input type="radio" name="q19" value="1"><span>1</span></label><label><input type="radio" name="q19" value="2"><span>2</span></label><label><input type="radio" name="q19" value="3"><span>3</span></label><label><input type="radio" name="q19" value="4"><span>4</span></label><label><input type="radio" name="q19" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="O4"><p>20. 나는 어려운 것이라도 기꺼이 배우고 싶다.</p><div class="options"><label><input type="radio" name="q20" value="1"><span>1</span></label><label><input type="radio" name="q20" value="2"><span>2</span></label><label><input type="radio" name="q20" value="3"><span>3</span></label><label><input type="radio" name="q20" value="4"><span>4</span></label><label><input type="radio" name="q20" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="C4"><p>21. 과제를 다 끝내고 나서 논다.</p><div class="options"><label><input type="radio" name="q21" value="1"><span>1</span></label><label><input type="radio" name="q21" value="2"><span>2</span></label><label><input type="radio" name="q21" value="3"><span>3</span></label><label><input type="radio" name="q21" value="4"><span>4</span></label><label><input type="radio" name="q21" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="N4"><p>22. 누가 내 잘못을 이야기하면 화가 나서 참을 수가 없다.</p><div class="options"><label><input type="radio" name="q22" value="1"><span>1</span></label><label><input type="radio" name="q22" value="2"><span>2</span></label><label><input type="radio" name="q22" value="3"><span>3</span></label><label><input type="radio" name="q22" value="4"><span>4</span></label><label><input type="radio" name="q22" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="A4*"><p>23. 누가 나에게 친절하게 대하면 의심스럽다.</p><div class="options"><label><input type="radio" name="q23" value="1"><span>1</span></label><label><input type="radio" name="q23" value="2"><span>2</span></label><label><input type="radio" name="q23" value="3"><span>3</span></label><label><input type="radio" name="q23" value="4"><span>4</span></label><label><input type="radio" name="q23" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="O1"><p>24. 무엇이든 일단 경험해 보는 것이 좋다고 생각한다.</p><div class="options"><label><input type="radio" name="q24" value="1"><span>1</span></label><label><input type="radio" name="q24" value="2"><span>2</span></label><label><input type="radio" name="q24" value="3"><span>3</span></label><label><input type="radio" name="q24" value="4"><span>4</span></label><label><input type="radio" name="q24" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="C1"><p>25. 목표를 세우고 매일 발전해 나가도록 노력해야 한다.</p><div class="options"><label><input type="radio" name="q25" value="1"><span>1</span></label><label><input type="radio" name="q25" value="2"><span>2</span></label><label><input type="radio" name="q25" value="3"><span>3</span></label><label><input type="radio" name="q25" value="4"><span>4</span></label><label><input type="radio" name="q25" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="A1*"><p>26. 사람들은 내가 뛰어나다는 것을 알아줘야 한다.</p><div class="options"><label><input type="radio" name="q26" value="1"><span>1</span></label><label><input type="radio" name="q26" value="2"><span>2</span></label><label><input type="radio" name="q26" value="3"><span>3</span></label><label><input type="radio" name="q26" value="4"><span>4</span></label><label><input type="radio" name="q26" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="C2"><p>27. 무슨 일을 하는지 철저하게 준비한다.</p><div class="options"><label><input type="radio" name="q27" value="1"><span>1</span></label><label><input type="radio" name="q27" value="2"><span>2</span></label><label><input type="radio" name="q27" value="3"><span>3</span></label><label><input type="radio" name="q27" value="4"><span>4</span></label><label><input type="radio" name="q27" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="A2"><p>28. 다른 사람과의 관계에서 너그러운 편이다.</p><div class="options"><label><input type="radio" name="q28" value="1"><span>1</span></label><label><input type="radio" name="q28" value="2"><span>2</span></label><label><input type="radio" name="q28" value="3"><span>3</span></label><label><input type="radio" name="q28" value="4"><span>4</span></label><label><input type="radio" name="q28" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="N2"><p>29. 생각한 것과 다른 일이 생기면 불안하다.</p><div class="options"><label><input type="radio" name="q29" value="1"><span>1</span></label><label><input type="radio" name="q29" value="2"><span>2</span></label><label><input type="radio" name="q29" value="3"><span>3</span></label><label><input type="radio" name="q29" value="4"><span>4</span></label><label><input type="radio" name="q29" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="E3"><p>30. 운동과 같은 활동적인 취미생활을 즐긴다.</p><div class="options"><label><input type="radio" name="q30" value="1"><span>1</span></label><label><input type="radio" name="q30" value="2"><span>2</span></label><label><input type="radio" name="q30" value="3"><span>3</span></label><label><input type="radio" name="q30" value="4"><span>4</span></label><label><input type="radio" name="q30" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="C3"><p>31. 책임감있게 주어진 역할을 수행한다.</p><div class="options"><label><input type="radio" name="q31" value="1"><span>1</span></label><label><input type="radio" name="q31" value="2"><span>2</span></label><label><input type="radio" name="q31" value="3"><span>3</span></label><label><input type="radio" name="q31" value="4"><span>4</span></label><label><input type="radio" name="q31" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="E4"><p>32. 나는 매일 일어날 일들이 기대된다.</p><div class="options"><label><input type="radio" name="q32" value="1"><span>1</span></label><label><input type="radio" name="q32" value="2"><span>2</span></label><label><input type="radio" name="q32" value="3"><span>3</span></label><label><input type="radio" name="q32" value="4"><span>4</span></label><label><input type="radio" name="q32" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="N4"><p>33. 나에게 상처를 준 사람은 용서하기 어렵다.</p><div class="options"><label><input type="radio" name="q33" value="1"><span>1</span></label><label><input type="radio" name="q33" value="2"><span>2</span></label><label><input type="radio" name="q33" value="3"><span>3</span></label><label><input type="radio" name="q33" value="4"><span>4</span></label><label><input type="radio" name="q33" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="C1"><p>34. 목표를 세우고 달성해 가는 일은 즐겁다.</p><div class="options"><label><input type="radio" name="q34" value="1"><span>1</span></label><label><input type="radio" name="q34" value="2"><span>2</span></label><label><input type="radio" name="q34" value="3"><span>3</span></label><label><input type="radio" name="q34" value="4"><span>4</span></label><label><input type="radio" name="q34" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="A1*"><p>35. 다른 사람에게 나를 자랑하는 것이 즐겁다.</p><div class="options"><label><input type="radio" name="q35" value="1"><span>1</span></label><label><input type="radio" name="q35" value="2"><span>2</span></label><label><input type="radio" name="q35" value="3"><span>3</span></label><label><input type="radio" name="q35" value="4"><span>4</span></label><label><input type="radio" name="q35" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="E2"><p>36. 나는 주장이 강한 편이다.</p><div class="options"><label><input type="radio" name="q36" value="1"><span>1</span></label><label><input type="radio" name="q36" value="2"><span>2</span></label><label><input type="radio" name="q36" value="3"><span>3</span></label><label><input type="radio" name="q36" value="4"><span>4</span></label><label><input type="radio" name="q36" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="O2"><p>37. 주변 사람들과 예술작품에 대해 이야기 나누는 것을 좋아한다.</p><div class="options"><label><input type="radio" name="q37" value="1"><span>1</span></label><label><input type="radio" name="q37" value="2"><span>2</span></label><label><input type="radio" name="q37" value="3"><span>3</span></label><label><input type="radio" name="q37" value="4"><span>4</span></label><label><input type="radio" name="q37" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="C2"><p>38. 나는 무엇을 배울 때 완벽하게 배우려는 경향이 있다.</p><div class="options"><label><input type="radio" name="q38" value="1"><span>1</span></label><label><input type="radio" name="q38" value="2"><span>2</span></label><label><input type="radio" name="q38" value="3"><span>3</span></label><label><input type="radio" name="q38" value="4"><span>4</span></label><label><input type="radio" name="q38" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="E3"><p>39. 나는 활동적인 일을 할 때 가장 생기가 넘치는 것 같다.</p><div class="options"><label><input type="radio" name="q39" value="1"><span>1</span></label><label><input type="radio" name="q39" value="2"><span>2</span></label><label><input type="radio" name="q39" value="3"><span>3</span></label><label><input type="radio" name="q39" value="4"><span>4</span></label><label><input type="radio" name="q39" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="O3"><p>40. 나는 창의적인 활동을 하는 것이 즐겁다.</p><div class="options"><label><input type="radio" name="q40" value="1"><span>1</span></label><label><input type="radio" name="q40" value="2"><span>2</span></label><label><input type="radio" name="q40" value="3"><span>3</span></label><label><input type="radio" name="q40" value="4"><span>4</span></label><label><input type="radio" name="q40" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="C3"><p>41. 내가 맡은 일은 내가 책임진다.</p><div class="options"><label><input type="radio" name="q41" value="1"><span>1</span></label><label><input type="radio" name="q41" value="2"><span>2</span></label><label><input type="radio" name="q41" value="3"><span>3</span></label><label><input type="radio" name="q41" value="4"><span>4</span></label><label><input type="radio" name="q41" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="A3"><p>42. 모든 사람은 사랑 받을 만하다.</p><div class="options"><label><input type="radio" name="q42" value="1"><span>1</span></label><label><input type="radio" name="q42" value="2"><span>2</span></label><label><input type="radio" name="q42" value="3"><span>3</span></label><label><input type="radio" name="q42" value="4"><span>4</span></label><label><input type="radio" name="q42" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="N3"><p>43. 나는 사고 싶은 것이 있으면 참기가 힘들다.</p><div class="options"><label><input type="radio" name="q43" value="1"><span>1</span></label><label><input type="radio" name="q43" value="2"><span>2</span></label><label><input type="radio" name="q43" value="3"><span>3</span></label><label><input type="radio" name="q43" value="4"><span>4</span></label><label><input type="radio" name="q43" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="C4"><p>44. 시간 가는 줄 모르고 문제풀이에 집중한 적이 있다.</p><div class="options"><label><input type="radio" name="q44" value="1"><span>1</span></label><label><input type="radio" name="q44" value="2"><span>2</span></label><label><input type="radio" name="q44" value="3"><span>3</span></label><label><input type="radio" name="q44" value="4"><span>4</span></label><label><input type="radio" name="q44" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="C4"><p>45. 나는 학교(직장)에 지각이나 결석을 하지 않으려 항상 노력한다.</p><div class="options"><label><input type="radio" name="q45" value="1"><span>1</span></label><label><input type="radio" name="q45" value="2"><span>2</span></label><label><input type="radio" name="q45" value="3"><span>3</span></label><label><input type="radio" name="q45" value="4"><span>4</span></label><label><input type="radio" name="q45" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="A4"><p>46. 대부분의 사람은 좋은 의도를 가지고 있다고 생각한다.</p><div class="options"><label><input type="radio" name="q46" value="1"><span>1</span></label><label><input type="radio" name="q46" value="2"><span>2</span></label><label><input type="radio" name="q46" value="3"><span>3</span></label><label><input type="radio" name="q46" value="4"><span>4</span></label><label><input type="radio" name="q46" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="E1"><p>47. 나는 사람들과 자주 어울리는 편이다.</p><div class="options"><label><input type="radio" name="q47" value="1"><span>1</span></label><label><input type="radio" name="q47" value="2"><span>2</span></label><label><input type="radio" name="q47" value="3"><span>3</span></label><label><input type="radio" name="q47" value="4"><span>4</span></label><label><input type="radio" name="q47" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="O1"><p>48. 시간이 있을 때마다 새로운 경험을 하고 싶다.</p><div class="options"><label><input type="radio" name="q48" value="1"><span>1</span></label><label><input type="radio" name="q48" value="2"><span>2</span></label><label><input type="radio" name="q48" value="3"><span>3</span></label><label><input type="radio" name="q48" value="4"><span>4</span></label><label><input type="radio" name="q48" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="A1*"><p>49. 상을 받으면 마땅히 받을 만 했다고 생각한다.</p><div class="options"><label><input type="radio" name="q49" value="1"><span>1</span></label><label><input type="radio" name="q49" value="2"><span>2</span></label><label><input type="radio" name="q49" value="3"><span>3</span></label><label><input type="radio" name="q49" value="4"><span>4</span></label><label><input type="radio" name="q49" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="N1"><p>50. 나는 우울하다.</p><div class="options"><label><input type="radio" name="q50" value="1"><span>1</span></label><label><input type="radio" name="q50" value="2"><span>2</span></label><label><input type="radio" name="q50" value="3"><span>3</span></label><label><input type="radio" name="q50" value="4"><span>4</span></label><label><input type="radio" name="q50" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="E2"><p>51. 다른 사람과 논쟁하는 상황에서 나의 의견을 주장할 수 있다.</p><div class="options"><label><input type="radio" name="q51" value="1"><span>1</span></label><label><input type="radio" name="q51" value="2"><span>2</span></label><label><input type="radio" name="q51" value="3"><span>3</span></label><label><input type="radio" name="q51" value="4"><span>4</span></label><label><input type="radio" name="q51" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="O2"><p>52. 나는 새로운 장르의 예술에 관심이 많다.</p><div class="options"><label><input type="radio" name="q52" value="1"><span>1</span></label><label><input type="radio" name="q52" value="2"><span>2</span></label><label><input type="radio" name="q52" value="3"><span>3</span></label><label><input type="radio" name="q52" value="4"><span>4</span></label><label><input type="radio" name="q52" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="A2"><p>53. 화가 나더라도 너그럽게 넘어가는 편이다.</p><div class="options"><label><input type="radio" name="q53" value="1"><span>1</span></label><label><input type="radio" name="q53" value="2"><span>2</span></label><label><input type="radio" name="q53" value="3"><span>3</span></label><label><input type="radio" name="q53" value="4"><span>4</span></label><label><input type="radio" name="q53" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="E3"><p>54. 나는 다른 사람보다 활동량이 많은 편이다.</p><div class="options"><label><input type="radio" name="q54" value="1"><span>1</span></label><label><input type="radio" name="q54" value="2"><span>2</span></label><label><input type="radio" name="q54" value="3"><span>3</span></label><label><input type="radio" name="q54" value="4"><span>4</span></label><label><input type="radio" name="q54" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="O3"><p>55. 나는 새롭고 기발한 생각을 하는 것이 즐겁다.</p><div class="options"><label><input type="radio" name="q55" value="1"><span>1</span></label><label><input type="radio" name="q55" value="2"><span>2</span></label><label><input type="radio" name="q55" value="3"><span>3</span></label><label><input type="radio" name="q55" value="4"><span>4</span></label><label><input type="radio" name="q55" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="C3"><p>56. 다른 사람들은 나를 믿고 일을 맡기는 편이다.</p><div class="options"><label><input type="radio" name="q56" value="1"><span>1</span></label><label><input type="radio" name="q56" value="2"><span>2</span></label><label><input type="radio" name="q56" value="3"><span>3</span></label><label><input type="radio" name="q56" value="4"><span>4</span></label><label><input type="radio" name="q56" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="A3"><p>57. 사람은 보호받아야 할 권리가 있다고 생각한다.</p><div class="options"><label><input type="radio" name="q57" value="1"><span>1</span></label><label><input type="radio" name="q57" value="2"><span>2</span></label><label><input type="radio" name="q57" value="3"><span>3</span></label><label><input type="radio" name="q57" value="4"><span>4</span></label><label><input type="radio" name="q57" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="E4"><p>58. 나는 행복할 때가 많다.</p><div class="options"><label><input type="radio" name="q58" value="1"><span>1</span></label><label><input type="radio" name="q58" value="2"><span>2</span></label><label><input type="radio" name="q58" value="3"><span>3</span></label><label><input type="radio" name="q58" value="4"><span>4</span></label><label><input type="radio" name="q58" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="C4"><p>59. 과제 제출기간을 넘기지 않는다.</p><div class="options"><label><input type="radio" name="q59" value="1"><span>1</span></label><label><input type="radio" name="q59" value="2"><span>2</span></label><label><input type="radio" name="q59" value="3"><span>3</span></label><label><input type="radio" name="q59" value="4"><span>4</span></label><label><input type="radio" name="q59" value="5"><span>5</span></label></div></div>
+            <div class="question-item" data-factor="A4*"><p>60. 나는 다른 사람의 의도에 대해 냉소적인 편이다.</p><div class="options"><label><input type="radio" name="q60" value="1"><span>1</span></label><label><input type="radio" name="q60" value="2"><span>2</span></label><label><input type="radio" name="q60" value="3"><span>3</span></label><label><input type="radio" name="q60" value="4"><span>4</span></label><label><input type="radio" name="q60" value="5"><span>5</span></label></div></div>
+        </div>
+
+        <div id="error-msg"></div>
+        <button type="submit" id="submit-btn">결과 보기</button>
+    </form>
+
+    <div class="results-container" id="results-container">
+        <div class="chart-container">
+            <canvas id="lineChart"></canvas>
+        </div>
+        <div id="details-table-container"></div>
+    </div>
+
+<script>
+    const form = document.getElementById('personality-form');
+    const resultsContainer = document.getElementById('results-container');
+    const errorMsg = document.getElementById('error-msg');
+    let lineChart;
+
+    const chartLabels = ['🌍 외향성 (E)', '🤝 친화성 (A)', '✏️ 성실성 (C)', '😟 신경성 (N)', '🎨 개방성 (O)'];
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const questionItems = form.querySelectorAll('.question-item');
+        const unansweredQuestions = [];
+
+        questionItems.forEach(item => { item.classList.remove('unanswered'); });
+
+        questionItems.forEach((item, index) => {
+            const selectedOption = item.querySelector(`input[name="q${index + 1}"]:checked`);
+            if (!selectedOption) {
+                unansweredQuestions.push(index + 1);
+                item.classList.add('unanswered');
+            }
+        });
+
+        if (unansweredQuestions.length > 0) {
+            errorMsg.textContent = `빠진 문항이 있습니다: ${unansweredQuestions.join(', ')}번`;
+            errorMsg.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            document.querySelector('.unanswered')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
+        errorMsg.style.display = 'none';
+
+        const mainScores = { E: 0, A: 0, C: 0, N: 0, O: 0 };
+        const mainCounts = { E: 0, A: 0, C: 0, N: 0, O: 0 };
+        const subScores = {};
+        const subCounts = {};
+
+        questionItems.forEach((item, index) => {
+            const factor = item.dataset.factor;
+            const mainFactor = factor.charAt(0);
+            const subFactorKey = factor.replace('*', '');
+
+            const selectedOption = item.querySelector(`input[name="q${index + 1}"]:checked`);
+            let score = parseInt(selectedOption.value);
+
+            if (factor.includes('*')) {
+                score = 6 - score;
+            }
+
+            mainScores[mainFactor] += score;
+            mainCounts[mainFactor]++;
+            
+            if (!subScores[subFactorKey]) {
+                subScores[subFactorKey] = 0;
+                subCounts[subFactorKey] = 0;
+            }
+            subScores[subFactorKey] += score;
+            subCounts[subFactorKey]++;
+        });
+
+        const averageMainScores = {
+            E: mainScores.E / mainCounts.E, A: mainScores.A / mainCounts.A,
+            C: mainScores.C / mainCounts.C, N: mainScores.N / mainCounts.N,
+            O: mainScores.O / mainCounts.O
+        };
+
+        const averageSubScores = {};
+        for (const key in subScores) {
+            averageSubScores[key] = subScores[key] / subCounts[key];
+        }
+        
+        displayLineChart(averageMainScores);
+        displayDetailsTable(averageSubScores);
+
+        resultsContainer.style.display = 'block';
+        resultsContainer.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    function displayLineChart(avgScores) {
+        const ctx = document.getElementById('lineChart').getContext('2d');
+        if (lineChart) lineChart.destroy();
+        lineChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: '성격 요인 (평균 점수)',
+                    data: [avgScores.E, avgScores.A, avgScores.C, avgScores.N, avgScores.O],
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 1,
+                        max: 5
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '성격 5요인 그래프',
+                        font: {
+                            size: 18
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function displayDetailsTable(avgSubScores) {
+        const container = document.getElementById('details-table-container');
+        container.innerHTML = '<h2>세부 요인별 평균 점수</h2>';
+        
+        const table = document.createElement('table');
+        table.className = 'details-table';
+
+        const thead = table.createTHead();
+        const headerRow = thead.insertRow();
+        headerRow.insertCell(0).textContent = '세부 요인';
+        headerRow.insertCell(1).textContent = '평균 점수';
+
+        const tbody = table.createTBody();
+        const sortedFactors = Object.keys(avgSubScores).sort();
+
+        for (const factor of sortedFactors) {
+            const row = tbody.insertRow();
+            row.insertCell(0).textContent = factor;
+            row.insertCell(1).textContent = avgSubScores[factor].toFixed(2);
+        }
+        
+        container.appendChild(table);
+    }
+</script>
+
+</body>
+</html>
