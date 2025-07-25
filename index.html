@@ -121,79 +121,75 @@
 
     const chartLabels = ['🌍 외향성 (E)', '🤝 친화성 (A)', '✏️ 성실성 (C)', '😟 신경성 (N)', '🎨 개방성 (O)'];
 
+    // 1–5점 평균(raw) → 0–100 스케일 변환 함수
+    function toPercentScale(raw) {
+      return Math.round((raw - 1) / 4 * 100);
+    }
+
     form.addEventListener('submit', (event) => {
         event.preventDefault();
 
-        const questionItems = form.querySelectorAll('.question-item');
-        const unansweredQuestions = [];
-
-        questionItems.forEach(item => { item.classList.remove('unanswered'); });
-
-        questionItems.forEach((item, index) => {
-            const selectedOption = item.querySelector(`input[name="q${index + 1}"]:checked`);
-            if (!selectedOption) {
-                unansweredQuestions.push(index + 1);
+        // 1) 응답 체크
+        const items = form.querySelectorAll('.question-item');
+        const missing = [];
+        items.forEach((item, i) => {
+            item.classList.remove('unanswered');
+            if (!item.querySelector(`input[name="q${i+1}"]:checked`)) {
+                missing.push(i+1);
                 item.classList.add('unanswered');
             }
         });
-
-        if (unansweredQuestions.length > 0) {
-            errorMsg.textContent = `빠진 문항이 있습니다: ${unansweredQuestions.join(', ')}번`;
+        if (missing.length) {
+            errorMsg.textContent = `빠진 문항: ${missing.join(', ')}번`;
             errorMsg.style.display = 'block';
             resultsContainer.style.display = 'none';
-            document.querySelector('.unanswered')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            document.querySelector('.question-item.unanswered')
+                    .scrollIntoView({behavior:'smooth', block:'center'});
             return;
         }
-
         errorMsg.style.display = 'none';
 
-        const mainScores = { E: 0, A: 0, C: 0, N: 0, O: 0 };
-        const mainCounts = { E: 0, A: 0, C: 0, N: 0, O: 0 };
-        const subScores = {};
-        const subCounts = {};
-
-        questionItems.forEach((item, index) => {
-            const factor = item.dataset.factor;
-            const mainFactor = factor.charAt(0);
-            const subFactorKey = factor.replace('*', '');
-
-            const selectedOption = item.querySelector(`input[name="q${index + 1}"]:checked`);
-            let score = parseInt(selectedOption.value);
-
-            if (factor.includes('*')) {
-                score = 6 - score;
-            }
-
-            mainScores[mainFactor] += score;
-            mainCounts[mainFactor]++;
-            
-            if (!subScores[subFactorKey]) {
-                subScores[subFactorKey] = 0;
-                subCounts[subFactorKey] = 0;
-            }
-            subScores[subFactorKey] += score;
-            subCounts[subFactorKey]++;
+        // 2) 점수 합산
+        const mainSum = { E:0,A:0,C:0,N:0,O:0 }, mainCnt = { E:0,A:0,C:0,N:0,O:0 };
+        const subSum = {}, subCnt = {};
+        items.forEach((item, i) => {
+            let val = +item.querySelector(`input[name="q${i+1}"]:checked`).value;
+            // 역문항 처리
+            if (item.dataset.factor.includes('*')) val = 6 - val;
+            const main = item.dataset.factor[0];
+            mainSum[main] += val;  mainCnt[main]++;
+            const sub = item.dataset.factor.replace('*','');
+            subSum[sub] = (subSum[sub]||0) + val;
+            subCnt[sub] = (subCnt[sub]||0) + 1;
         });
 
-        const averageMainScores = {
-            E: mainScores.E / mainCounts.E, A: mainScores.A / mainCounts.A,
-            C: mainScores.C / mainCounts.C, N: mainScores.N / mainCounts.N,
-            O: mainScores.O / mainCounts.O
-        };
-
-        const averageSubScores = {};
-        for (const key in subScores) {
-            averageSubScores[key] = subScores[key] / subCounts[key];
+        // 3) 평균(raw)
+        const avgMain = {};
+        for (let k of ['E','A','C','N','O']) {
+            avgMain[k] = mainSum[k] / mainCnt[k];
         }
-        
-        displayLineChart(averageMainScores);
-        displayDetailsTable(averageSubScores);
+        const avgSub = {};
+        Object.keys(subSum).sort().forEach(k => {
+            avgSub[k] = subSum[k] / subCnt[k];
+        });
 
+        // 4) 0–100 변환
+        const pctMain = {}, pctSub = {};
+        for (let k of Object.keys(avgMain)) {
+            pctMain[k] = toPercentScale(avgMain[k]);
+        }
+        Object.keys(avgSub).sort().forEach(k => {
+            pctSub[k] = toPercentScale(avgSub[k]);
+        });
+
+        // 5) 결과 표시
+        displayLineChart(pctMain);
+        displayDetailsTable(pctSub);
         resultsContainer.style.display = 'block';
-        resultsContainer.scrollIntoView({ behavior: 'smooth' });
+        resultsContainer.scrollIntoView({behavior:'smooth', block:'start'});
     });
 
-    function displayLineChart(avgScores) {
+    function displayLineChart(scores) {
         const ctx = document.getElementById('lineChart').getContext('2d');
         if (lineChart) lineChart.destroy();
         lineChart = new Chart(ctx, {
@@ -201,63 +197,49 @@
             data: {
                 labels: chartLabels,
                 datasets: [{
-                    label: '성격 요인 (평균 점수)',
-                    data: [avgScores.E, avgScores.A, avgScores.C, avgScores.N, avgScores.O],
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
+                    label: '성격 요인 (0–100)',
+                    data: [scores.E, scores.A, scores.C, scores.N, scores.O],
+                    backgroundColor: 'rgba(75,192,192,0.2)',
+                    borderColor: 'rgba(75,192,192,1)',
                     borderWidth: 2,
-                    pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                    pointBackgroundColor: 'rgba(75,192,192,1)',
                     tension: 0.1,
                     fill: true
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: true,
                 scales: {
-                    y: {
-                        beginAtZero: false,
-                        min: 1,
-                        max: 5
-                    }
+                    y: { beginAtZero: true, min: 0, max: 100 }
                 },
                 plugins: {
                     title: {
                         display: true,
-                        text: '성격 5요인 그래프',
-                        font: {
-                            size: 18
-                        }
+                        text: '성격 5요인 (0–100 스케일)',
+                        font: { size: 18 }
                     }
                 }
             }
         });
     }
 
-    function displayDetailsTable(avgSubScores) {
+    function displayDetailsTable(scores) {
         const container = document.getElementById('details-table-container');
-        container.innerHTML = '<h2>세부 요인별 평균 점수</h2>';
-        
-        const table = document.createElement('table');
-        table.className = 'details-table';
-
-        const thead = table.createTHead();
-        const headerRow = thead.insertRow();
-        headerRow.insertCell(0).textContent = '세부 요인';
-        headerRow.insertCell(1).textContent = '평균 점수';
-
-        const tbody = table.createTBody();
-        const sortedFactors = Object.keys(avgSubScores).sort();
-
-        for (const factor of sortedFactors) {
-            const row = tbody.insertRow();
-            row.insertCell(0).textContent = factor;
-            row.insertCell(1).textContent = avgSubScores[factor].toFixed(2);
-        }
-        
-        container.appendChild(table);
+        container.innerHTML = '<h2>세부 요인별 평균 점수 (0–100)</h2>';
+        const tbl = document.createElement('table');
+        tbl.className = 'details-table';
+        const th = tbl.createTHead().insertRow();
+        th.insertCell().textContent = '세부 요인';  
+        th.insertCell().textContent = '평균 점수';
+        const body = tbl.createTBody();
+        Object.keys(scores).sort().forEach(f => {
+            const r = body.insertRow();
+            r.insertCell().textContent = f;
+            r.insertCell().textContent = scores[f].toFixed(0);
+        });
+        container.appendChild(tbl);
     }
 </script>
+
 
 </body>
 </html>
