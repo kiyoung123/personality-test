@@ -23,7 +23,24 @@
         #error-msg { text-align: center; color: #c0392b; font-weight: bold; margin-top: 15px; display: none; background-color: #fbeae5; padding: 10px; border-radius: 5px; border: 1px solid #e74c3c; }
 
         .chart-container { max-width: 600px; margin: 0 auto; }
+        .chart-container {
+          width: 100% !important;
+          max-width: 100% !important;
+          /* 화면 높이의 40% 만큼 차트 높이를 확보 */
+          height: 40vh;
+          position: relative;
+        }
+        .chart-container canvas {
+          width: 100% !important;
+          height: 100% !important;
+        }
 
+        /* 가로 모드일 때 높이를 더 늘려서 가독성 확보 */
+        @media (orientation: landscape) {
+          .chart-container {
+            height: 60vh;
+          }
+        }
         #details-table-container { margin-top: 30px; }
         .details-table { width: 100%; border-collapse: collapse; }
         .details-table th, .details-table td { border: 1px solid #ddd; padding: 10px; text-align: center; }
@@ -191,30 +208,35 @@
     });
 
     function displayLineChart(avg) {
-        const ctx = document.getElementById('lineChart').getContext('2d');
-        if (lineChart) lineChart.destroy();
-        lineChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: chartLabels,
-                datasets: [{
-                    label: '성격 요인 (평균 점수)',
-                    data: [avg.E, avg.A, avg.C, avg.N, avg.O],
-                    tension: 0.1,
-                    fill: true
-                }]
+    const ctx = document.getElementById('lineChart').getContext('2d');
+    if (lineChart) lineChart.destroy();
+    lineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: '성격 요인 (평균 점수)',
+                data: [avg.E, avg.A, avg.C, avg.N, avg.O],
+                tension: 0.1,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,  // 이 줄을 꼭 추가
+            scales: {
+                y: { min: 1, max: 5 }
             },
-            options: {
-                scales: { y: { min: 1, max: 5 } },
-                plugins: {
-                    title: {
-                        display: true,
-                        text: '성격 5요인 그래프'
-                    }
+            plugins: {
+                title: {
+                    display: true,
+                    text: '성격 5요인 그래프'
                 }
             }
-        });
-    }
+        }
+    });
+}
+
 
     function displayDetailsTable(avgSub) {
         const container = document.getElementById('details-table-container');
