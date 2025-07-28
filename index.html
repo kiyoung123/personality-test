@@ -130,7 +130,7 @@
         questionItems.forEach(item => { item.classList.remove('unanswered'); });
 
         questionItems.forEach((item, index) => {
-            const selectedOption = item.querySelector(input[name="q${index + 1}"]:checked);
+            const selectedOption = item.querySelector(`input[name="q${index + 1}"]:checked`);
             if (!selectedOption) {
                 unansweredQuestions.push(index + 1);
                 item.classList.add('unanswered');
@@ -138,7 +138,7 @@
         });
 
         if (unansweredQuestions.length > 0) {
-            errorMsg.textContent = 빠진 문항이 있습니다: ${unansweredQuestions.join(', ')}번;
+            errorMsg.textContent = `빠진 문항이 있습니다: ${unansweredQuestions.join(', ')}번`;
             errorMsg.style.display = 'block';
             resultsContainer.style.display = 'none';
             document.querySelector('.unanswered')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -157,7 +157,7 @@
             const mainFactor = factor.charAt(0);
             const subFactorKey = factor.replace('*', '');
 
-            const selectedOption = item.querySelector(input[name="q${index + 1}"]:checked);
+            const selectedOption = item.querySelector(`input[name="q${index + 1}"]:checked`);
             let score = parseInt(selectedOption.value);
 
             if (factor.includes('*')) {
